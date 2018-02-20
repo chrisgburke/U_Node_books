@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link type="text/css" rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="add_book.html">Add book</a>
+            <a href="add_store.html">Add Store</a>
+        </div>
+    </header>
+    <div class="container">
+        <h2>Edit Book</h2>
+        <form id="books_form">
+
+            <div class="form-element">
+                <label>Book name:</label>
+                <input type="text" name="name" id="name">
+            </div>
+
+            <div class="form-element">
+                <label>Author:</label>
+                <input type="text" name="author" id="author">
+            </div>
+
+            <div class="form-element">
+                <label>Number of pages:</label>
+                <input type="text" name="pages" id="pages">
+            </div>
+
+            <div class="form-element">
+                <label>Price:</label>
+                <input type="text" name="price" id="price">
+            </div>
+
+            <div class="form-element">
+                <label>Stores:</label>
+                <select name="stores" id="stores" multiple>
+                </select>
+            </div>
+
+
+            <div class="form-element">
+                <button type="submit">Save Changes</button>
+            </div>
+
+            <div class="form-element">
+                <button id="delete_book" type="button">Delete</button>
+            </div>
+
+        </form>
+    </div>
+
+
+
+</body>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:3001/api/stores",
+            success: (data, status, xhr) => {
+                data.map((item) => {
+                    $('#stores').append($('<option>', {
+                        value: item.name,
+                        text: item.name
+                    }))
+                })
+            },
+            error: (xhr) => {
+                alert("Error");
+            }
+        });
+
+        let searchParams = new URLSearchParams(window.location.search);
+        let bookId = searchParams.get("book_id");
+
+        $.ajax({
+            type: "GET",
+            url: `http://localhost:3001/api/books/${bookId}`,
+            success: (data, status, xhr) => {
+                $('#name').val(data.name);
+                $('#author').val(data.author);
+                $('#pages').val(data.pages);
+                $('#price').val(data.price);
+            },
+            error: (xhr) => {
+
+            }
+        });
+
+        $('#books_form').submit((e)=>{
+            e.preventDefault();
+
+            let bookObj = {
+                name:$('#name').val(),
+                author:$('#author').val(),
+                pages:$('#pages').val(),
+                price:$('#price').val(),
+                stores:$('#stores').val(),
+            }
+
+            $.ajax({
+                type:"PATCH",
+                url:`http://localhost:3001/api/books/${bookId}`,
+                data:JSON.stringify(bookObj),
+                contentType:"application/json",
+                success:(data, status, xhr)=>{
+                    $('#books_form')[0].reset();
+                    alert("Book saved");    
+                },
+                error:(xhr)=>{
+                    alert("Error updating book")
+                }                
+            })
+        })
+
+        $("#delete_book").click(()=>{
+            $.ajax({
+                type:"DELETE",
+                url:`http://localhost:3001/api/books/delete/${bookId}`,
+                success:(data, status, xhr)=>{
+                    alert("DELETED!")
+                },
+                error:(xhr)=>{
+                    alert(xhr);
+                }
+            })
+        })
+    });
+</script>
+
+</html>
